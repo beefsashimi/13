@@ -422,6 +422,9 @@
 
     // Plus/Minus button handlers for main row
     function adjustScore(playerIdx, delta) {
+      if ('vibrate' in navigator) {
+        navigator.vibrate(15);
+      }
       const currentVal = parseInt(scoreInputs[playerIdx].value) || 0;
       scoreInputs[playerIdx].value = currentVal + delta;
       sumAlert.classList.add('hidden');
@@ -429,6 +432,9 @@
 
     // Plus/Minus button handlers for edit modal
     function adjustModalScore(playerIdx, delta) {
+      if ('vibrate' in navigator) {
+        navigator.vibrate(15);
+      }
       const currentVal = parseInt(modalInputs[playerIdx].value) || 0;
       modalInputs[playerIdx].value = currentVal + delta;
       checkModalSum();
