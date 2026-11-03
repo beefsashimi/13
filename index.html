@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>13 Cards Score Tracker</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Inter Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    /* Hide spin buttons for Firefox and Webkit */
+    input[type='number']::-webkit-inner-spin-button,
+    input[type='number']::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type='number'] {
+      -moz-appearance: textfield;
+    }
+  </style>
+</head>
+<body class="bg-emerald-950 bg-gradient-to-b from-emerald-900 via-emerald-950 to-slate-950 text-slate-100 min-h-screen pb-6">
+
+  <!-- Main Container -->
+  <div class="max-w-4xl mx-auto px-2 py-3 sm:px-4">
+    
+    <!-- Title Header & Mode Toggle -->
+    <div class="flex items-center justify-between gap-2 mb-3 pb-2 border-b border-emerald-700/60">
+      <div class="flex items-center gap-2">
+        <div class="p-1.5 bg-emerald-700 text-amber-300 rounded-lg shadow-md border border-emerald-600">
+          <i class="fa-solid fa-layer-group text-base sm:text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-lg sm:text-2xl font-black tracking-wide text-amber-300 leading-tight">十三張</h1>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- Reset Button -->
+        <button id="resetAllBtn" class="px-2 py-1 text-xs font-bold rounded-md transition-all bg-rose-700 hover:bg-rose-600 active:bg-rose-800 text-white shadow flex items-center gap-1 border border-rose-600">
+          <i class="fa-solid fa-rotate-left text-[10px]"></i>
+          <span>Reset</span>
+        </button>
+
+        <!-- 3-Player / 4-Player Selector Buttons -->
+        <div class="flex items-center bg-emerald-950 p-1 rounded-lg border border-emerald-700/80">
+          <button id="mode3Btn" class="px-2.5 py-1 text-xs font-bold rounded-md transition-all text-emerald-300 hover:text-white">
+            3 Players
+          </button>
+          <button id="mode4Btn" class="px-2.5 py-1 text-xs font-bold rounded-md transition-all bg-emerald-700 text-amber-300 border border-emerald-600 shadow">
+            4 Players
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert / Zero Check Banner -->
+    <div id="sumAlert" class="hidden mb-2 p-2 bg-amber-500/20 border border-amber-500/60 text-amber-200 rounded-lg text-xs flex items-center justify-between backdrop-blur-sm">
+      <span class="flex items-center gap-1.5 font-medium">
+        <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+        <span>Sum must be 0! Current sum: <strong id="sumValue" class="text-amber-300 font-bold">0</strong></span>
+      </span>
+    </div>
+
+    <!-- Main Scorecard Table Container -->
+    <div class="bg-emerald-900/90 backdrop-blur-md rounded-xl shadow-2xl border border-emerald-700/80 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse table-fixed">
+          
+          <!-- ROW 1: PLAYER NAMES INPUT -->
+          <thead>
+            <tr class="bg-emerald-950/80 border-b border-emerald-700/80">
+              <th class="py-1.5 px-0.5 w-8 text-center"></th>
+              <th class="py-1.5 px-0.5 text-center">
+                <input type="text" id="p1Name" value="P1" class="player-name-input w-full bg-emerald-900 border border-emerald-600 rounded px-1 py-1 text-center font-bold text-amber-300 text-xs focus:outline-none focus:ring-1 focus:ring-amber-400 shadow-inner">
+              </th>
+              <th class="py-1.5 px-0.5 text-center">
+                <input type="text" id="p2Name" value="P2" class="player-name-input w-full bg-emerald-900 border border-emerald-600 rounded px-1 py-1 text-center font-bold text-amber-300 text-xs focus:outline-none focus:ring-1 focus:ring-amber-400 shadow-inner">
+              </th>
+              <th class="py-1.5 px-0.5 text-center">
+                <input type="text" id="p3Name" value="P3" class="player-name-input w-full bg-emerald-900 border border-emerald-600 rounded px-1 py-1 text-center font-bold text-amber-300 text-xs focus:outline-none focus:ring-1 focus:ring-amber-400 shadow-inner">
+              </th>
+              <th id="p4NameHeaderCol" class="py-1.5 px-0.5 text-center">
+                <input type="text" id="p4Name" value="P4" class="player-name-input w-full bg-emerald-900 border border-emerald-600 rounded px-1 py-1 text-center font-bold text-amber-300 text-xs focus:outline-none focus:ring-1 focus:ring-amber-400 shadow-inner">
+              </th>
+              <th class="py-1.5 px-0.5 text-center w-8"></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <!-- ROW 2: TOTAL SCORES -->
+            <tr class="bg-emerald-950/40 border-b border-emerald-800/80">
+              <td class="py-2 px-0.5 w-8 text-center"></td>
+              <td class="py-2 px-0.5 text-center">
+                <span id="p1Total" class="text-base sm:text-lg font-black text-slate-100">0</span>
+              </td>
+              <td class="py-2 px-0.5 text-center">
+                <span id="p2Total" class="text-base sm:text-lg font-black text-slate-100">0</span>
+              </td>
+              <td class="py-2 px-0.5 text-center">
+                <span id="p3Total" class="text-base sm:text-lg font-black text-slate-100">0</span>
+              </td>
+              <td id="p4TotalCol" class="py-2 px-0.5 text-center">
+                <span id="p4Total" class="text-base sm:text-lg font-black text-slate-100">0</span>
+              </td>
+              <td class="py-2 px-0.5 text-center w-8"></td>
+            </tr>
+
+            <!-- ROW 2.5: DEALER (莊) INDICATOR ROW -->
+            <tr class="bg-emerald-950/60 border-b-2 border-emerald-700/80">
+              <td class="py-1 px-0.5 w-8 text-center"></td>
+              <td class="py-1 px-0.5 text-center" id="p1DealerCol"></td>
+              <td class="py-1 px-0.5 text-center" id="p2DealerCol"></td>
+              <td class="py-1 px-0.5 text-center" id="p3DealerCol"></td>
+              <td class="py-1 px-0.5 text-center" id="p4DealerCol"></td>
+              <td class="py-1 px-0.5 text-center w-8"></td>
+            </tr>
+
+            <!-- ROW 3: NEW SCORE INPUT + CONFIRM BUTTON -->
+            <tr class="bg-emerald-800/90 border-b border-emerald-600/80">
+              <td id="newRowLabel" class="py-2 px-0.5 w-8 text-[10px] font-bold text-emerald-200 text-center leading-tight"></td>
+              <td class="py-2 px-0.5">
+                <div class="flex items-center justify-between bg-emerald-950 p-0.5 rounded border border-emerald-600 shadow-inner">
+                  <button type="button" onclick="adjustScore(0, -1)" class="w-8 h-8 bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-900 text-rose-400 text-sm font-extrabold rounded flex items-center justify-center border border-emerald-700 select-none touch-manipulation">-</button>
+                  <input type="number" id="p1Score" value="0" readonly class="score-input w-full min-w-0 bg-transparent text-center text-xs font-bold text-white focus:outline-none cursor-default select-none">
+                  <button type="button" onclick="adjustScore(0, 1)" class="w-8 h-8 bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-900 text-emerald-300 text-sm font-extrabold rounded flex items-center justify-center border border-emerald-700 select-none touch-manipulation">+</button>
+                </div>
+              </td>
+              <td class="py-2 px-0.5">
+                <div class="flex items-center justify-between bg-emerald-950 p-0.5 rounded border border-emerald-600 shadow-inner">
+                  <button type="button" onclick="adjustScore(1, -1)" class="w-8 h-8 bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-900 text-rose-400 text-sm font-extrabold rounded flex items-center justify-center border border-emerald-700 select-none touch-manipulation">-</button>
+                  <input type="number" id="p2Score" value="0" readonly class="score-input w-full min-w-0 bg-transparent text-center text-xs font-bold text-white focus:outline-none cursor-default select-none">
+                  <button type="button" onclick="adjustScore(1, 1)" class="w-8 h-8 bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-900 text-emerald-300 text-sm font-extrabold rounded flex items-center justify-center border border-emerald-700 select-none touch-manipulation">+</button>
+                </div>
+              </td>
+              <td class="py-2 px-0.5">
+                <div class="flex items-center justify-between bg-emerald-950 p-0.5 rounded border border-emerald-600 shadow-inner">
+                  <button type="button" onclick="adjustScore(2, -1)" class="w-8 h-8 bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-900 text-rose-400 text-sm font-extrabold rounded flex items-center justify-center border border-emerald-700 select-none touch-manipulation">-</button>
+                  <input type="number" id="p3Score" value="0" readonly class="score-input w-full min-w-0 bg-transparent text-center text-xs font-bold text-white focus:outline-none cursor-default select-none">
+                  <button type="button" onclick="adjustScore(2, 1)" class="w-8 h-8 bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-900 text-emerald-300 text-sm font-extrabold rounded flex items-center justify-center border border-emerald-700 select-none touch-manipulation">+</button>
+                </div>
+              </td>
+              <td id="p4ScoreInputCol" class="py-2 px-0.5">
+                <div class="flex items-center justify-between bg-emerald-950 p-0.5 rounded border border-emerald-600 shadow-inner">
+                  <button type="button" onclick="adjustScore(3, -1)" class="w-8 h-8 bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-900 text-rose-400 text-sm font-extrabold rounded flex items-center justify-center border border-emerald-700 select-none touch-manipulation">-</button>
+                  <input type="number" id="p4Score" value="0" readonly class="score-input w-full min-w-0 bg-transparent text-center text-xs font-bold text-white focus:outline-none cursor-default select-none">
+                  <button type="button" onclick="adjustScore(3, 1)" class="w-8 h-8 bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-900 text-emerald-300 text-sm font-extrabold rounded flex items-center justify-center border border-emerald-700 select-none touch-manipulation">+</button>
+                </div>
+              </td>
+              <td class="py-2 px-0.5 text-center w-8">
+                <button id="addScoreBtn" class="w-full bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-emerald-950 font-black h-8 rounded text-xs shadow-md border border-amber-300 transition-all duration-150 flex items-center justify-center">
+                  <i class="fa-solid fa-check text-xs"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- SCROLLABLE HISTORY SECTION -->
+      <div class="max-h-[55vh] overflow-y-auto">
+        <table class="w-full text-left border-collapse table-fixed">
+          <!-- ROW 4, 5, etc.: PAST SCORES HISTORY (REVERSE CHRONOLOGICAL) -->
+          <tbody id="historyTableBody" class="divide-y divide-emerald-800/60 text-xs">
+            <!-- Dynamic rows will be inserted here -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="py-8 text-center text-emerald-400/50">
+        <i class="fa-solid fa-list-ol text-2xl mb-1 text-emerald-500/30"></i>
+        <p class="text-xs font-medium text-emerald-300/60">No rounds recorded yet.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT ROUND MODAL -->
+  <div id="editModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+    <div class="bg-emerald-900 border border-emerald-700 rounded-xl w-full max-w-xs p-4 shadow-2xl text-slate-100">
+      <div class="flex justify-between items-center pb-2 border-b border-emerald-700 mb-3">
+        <h3 class="text-sm font-bold text-amber-300 flex items-center gap-1.5">
+          <i class="fa-solid fa-pen-to-square text-amber-400 text-xs"></i>
+          <span>Edit Game <span id="modalRoundNumber">#</span></span>
+        </h3>
+        <button id="closeModalBtn" class="text-emerald-400 hover:text-emerald-200 text-base">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label id="modalP1Label" class="block text-[10px] font-semibold text-emerald-200 mb-0.5">P1</label>
+            <div class="flex items-center gap-1 bg-emerald-950 p-1 rounded border border-emerald-700">
+              <button type="button" onclick="adjustModalScore(0, -1)" class="w-7 h-7 bg-emerald-800 hover:bg-emerald-700 border border-emerald-700 text-rose-400 font-extrabold rounded flex items-center justify-center text-xs select-none">-</button>
+              <input type="number" id="modalP1Score" readonly class="w-full bg-transparent text-center font-bold text-sm text-white focus:outline-none cursor-default select-none">
+              <button type="button" onclick="adjustModalScore(0, 1)" class="w-7 h-7 bg-emerald-800 hover:bg-emerald-700 border border-emerald-700 text-emerald-300 font-extrabold rounded flex items-center justify-center text-xs select-none">+</button>
+            </div>
+          </div>
+          <div>
+            <label id="modalP2Label" class="block text-[10px] font-semibold text-emerald-200 mb-0.5">P2</label>
+            <div class="flex items-center gap-1 bg-emerald-950 p-1 rounded border border-emerald-700">
+              <button type="button" onclick="adjustModalScore(1, -1)" class="w-7 h-7 bg-emerald-800 hover:bg-emerald-700 border border-emerald-700 text-rose-400 font-extrabold rounded flex items-center justify-center text-xs select-none">-</button>
+              <input type="number" id="modalP2Score" readonly class="w-full bg-transparent text-center font-bold text-sm text-white focus:outline-none cursor-default select-none">
+              <button type="button" onclick="adjustModalScore(1, 1)" class="w-7 h-7 bg-emerald-800 hover:bg-emerald-700 border border-emerald-700 text-emerald-300 font-extrabold rounded flex items-center justify-center text-xs select-none">+</button>
+            </div>
+          </div>
+          <div>
+            <label id="modalP3Label" class="block text-[10px] font-semibold text-emerald-200 mb-0.5">P3</label>
+            <div class="flex items-center gap-1 bg-emerald-950 p-1 rounded border border-emerald-700">
+              <button type="button" onclick="adjustModalScore(2, -1)" class="w-7 h-7 bg-emerald-800 hover:bg-emerald-700 border border-emerald-700 text-rose-400 font-extrabold rounded flex items-center justify-center text-xs select-none">-</button>
+              <input type="number" id="modalP3Score" readonly class="w-full bg-transparent text-center font-bold text-sm text-white focus:outline-none cursor-default select-none">
+              <button type="button" onclick="adjustModalScore(2, 1)" class="w-7 h-7 bg-emerald-800 hover:bg-emerald-700 border border-emerald-700 text-emerald-300 font-extrabold rounded flex items-center justify-center text-xs select-none">+</button>
+            </div>
+          </div>
+          <div id="modalP4Container">
+            <label id="modalP4Label" class="block text-[10px] font-semibold text-emerald-200 mb-0.5">P4</label>
+            <div class="flex items-center gap-1 bg-emerald-950 p-1 rounded border border-emerald-700">
+              <button type="button" onclick="adjustModalScore(3, -1)" class="w-7 h-7 bg-emerald-800 hover:bg-emerald-700 border border-emerald-700 text-rose-400 font-extrabold rounded flex items-center justify-center text-xs select-none">-</button>
+              <input type="number" id="modalP4Score" readonly class="w-full bg-transparent text-center font-bold text-sm text-white focus:outline-none cursor-default select-none">
+              <button type="button" onclick="adjustModalScore(3, 1)" class="w-7 h-7 bg-emerald-800 hover:bg-emerald-700 border border-emerald-700 text-emerald-300 font-extrabold rounded flex items-center justify-center text-xs select-none">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="modalSumAlert" class="text-[10px] text-amber-300 hidden bg-amber-500/20 p-1.5 rounded border border-amber-500/40 text-center font-medium">
+          Warning: Round sum is <span id="modalSumValue">0</span>.
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-emerald-700">
+        <button id="deleteRoundBtn" class="px-2.5 py-1.5 bg-rose-900/60 hover:bg-rose-800 text-rose-300 rounded text-xs font-semibold transition-colors border border-rose-700 flex items-center gap-1">
+          <i class="fa-solid fa-trash-can text-[10px]"></i> Del
+        </button>
+        <div class="flex items-center gap-1.5">
+          <button id="cancelModalBtn" class="px-2.5 py-1.5 bg-emerald-950 hover:bg-emerald-800 text-emerald-200 rounded text-xs font-semibold transition-colors border border-emerald-700">
+            Cancel
+          </button>
+          <button id="saveModalBtn" class="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-emerald-950 font-bold rounded text-xs transition-colors shadow">
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESET CONFIRMATION MODAL -->
+  <div id="resetConfirmModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+    <div class="bg-emerald-900 border border-emerald-700 rounded-xl w-full max-w-xs p-4 shadow-2xl text-slate-100">
+      <div class="text-center mb-4">
+        <div class="w-10 h-10 bg-rose-900/60 text-rose-400 border border-rose-700 rounded-full flex items-center justify-center mx-auto mb-2">
+          <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+        </div>
+        <h3 class="text-sm font-bold text-white mb-1">Reset All Records?</h3>
+        <p class="text-xs text-emerald-200/80">Are you sure you want to delete all round history and reset player names? This action cannot be undone.</p>
+      </div>
+
+      <div class="flex items-center justify-end gap-2">
+        <button id="cancelResetBtn" class="px-3 py-1.5 bg-emerald-950 hover:bg-emerald-800 text-emerald-200 rounded text-xs font-semibold transition-colors border border-emerald-700">
+          Cancel
+        </button>
+        <button id="confirmResetBtn" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded text-xs font-semibold transition-colors shadow border border-rose-500">
+          Yes, Reset
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC -->
+  <script>
+    // State management
+    let state = {
+      playerCount: 4, // 3 or 4
+      playerNames: ['Player 1', 'Player 2', 'Player 3', 'Player 4'],
+      history: [] // Each entry: { id: number, scores: [number, number, number, number] }
+    };
+
+    let editingRoundIndex = null;
+
+    // DOM Elements
+    const mode3Btn = document.getElementById('mode3Btn');
+    const mode4Btn = document.getElementById('mode4Btn');
+    const p4NameHeaderCol = document.getElementById('p4NameHeaderCol');
+    const p4TotalCol = document.getElementById('p4TotalCol');
+    const p4ScoreInputCol = document.getElementById('p4ScoreInputCol');
+    const modalP4Container = document.getElementById('modalP4Container');
+
+    const nameInputs = [
+      document.getElementById('p1Name'),
+      document.getElementById('p2Name'),
+      document.getElementById('p3Name'),
+      document.getElementById('p4Name')
+    ];
+
+    const scoreInputs = [
+      document.getElementById('p1Score'),
+      document.getElementById('p2Score'),
+      document.getElementById('p3Score'),
+      document.getElementById('p4Score')
+    ];
+
+    const totalDisplays = [
+      document.getElementById('p1Total'),
+      document.getElementById('p2Total'),
+      document.getElementById('p3Total'),
+      document.getElementById('p4Total')
+    ];
+
+    const dealerCols = [
+      document.getElementById('p1DealerCol'),
+      document.getElementById('p2DealerCol'),
+      document.getElementById('p3DealerCol'),
+      document.getElementById('p4DealerCol')
+    ];
+
+    const addScoreBtn = document.getElementById('addScoreBtn');
+    const historyTableBody = document.getElementById('historyTableBody');
+    const emptyState = document.getElementById('emptyState');
+    const sumAlert = document.getElementById('sumAlert');
+    const sumValue = document.getElementById('sumValue');
+    const newRowLabel = document.getElementById('newRowLabel');
+
+    // Modal DOM Elements
+    const editModal = document.getElementById('editModal');
+    const modalRoundNumber = document.getElementById('modalRoundNumber');
+    const modalP1Label = document.getElementById('modalP1Label');
+    const modalP2Label = document.getElementById('modalP2Label');
+    const modalP3Label = document.getElementById('modalP3Label');
+    const modalP4Label = document.getElementById('modalP4Label');
+    const modalInputs = [
+      document.getElementById('modalP1Score'),
+      document.getElementById('modalP2Score'),
+      document.getElementById('modalP3Score'),
+      document.getElementById('modalP4Score')
+    ];
+    const modalSumAlert = document.getElementById('modalSumAlert');
+    const modalSumValue = document.getElementById('modalSumValue');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const cancelModalBtn = document.getElementById('cancelModalBtn');
+    const saveModalBtn = document.getElementById('saveModalBtn');
+    const deleteRoundBtn = document.getElementById('deleteRoundBtn');
+
+    // Reset Modal DOM Elements
+    const resetAllBtn = document.getElementById('resetAllBtn');
+    const resetConfirmModal = document.getElementById('resetConfirmModal');
+    const cancelResetBtn = document.getElementById('cancelResetBtn');
+    const confirmResetBtn = document.getElementById('confirmResetBtn');
+
+    // Load from LocalStorage
+    function loadState() {
+      const saved = localStorage.getItem('thirteen_cards_tracker_data');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.playerCount === 3 || parsed.playerCount === 4) {
+            state.playerCount = parsed.playerCount;
+          }
+          if (parsed.playerNames && Array.isArray(parsed.playerNames)) {
+            state.playerNames = parsed.playerNames;
+          }
+          if (parsed.history && Array.isArray(parsed.history)) {
+            state.history = parsed.history;
+          }
+        } catch (e) {
+          console.error("Failed to parse saved state", e);
+        }
+      }
+
+      nameInputs.forEach((input, idx) => {
+        input.value = state.playerNames[idx] || `Player ${idx + 1}`;
+      });
+
+      updateModeUI();
+      render();
+    }
+
+    function saveState() {
+      localStorage.setItem('thirteen_cards_tracker_data', JSON.stringify(state));
+    }
+
+    function setPlayerCount(count) {
+      if (state.playerCount === count) return;
+      state.playerCount = count;
+      updateModeUI();
+      saveState();
+      render();
+    }
+
+    function updateModeUI() {
+      if (state.playerCount === 3) {
+        mode3Btn.className = "px-2.5 py-1 text-xs font-bold rounded-md transition-all bg-emerald-700 text-amber-300 border border-emerald-600 shadow";
+        mode4Btn.className = "px-2.5 py-1 text-xs font-bold rounded-md transition-all text-emerald-300 hover:text-white";
+        p4NameHeaderCol.classList.add('hidden');
+        p4TotalCol.classList.add('hidden');
+        p4ScoreInputCol.classList.add('hidden');
+        modalP4Container.classList.add('hidden');
+      } else {
+        mode4Btn.className = "px-2.5 py-1 text-xs font-bold rounded-md transition-all bg-emerald-700 text-amber-300 border border-emerald-600 shadow";
+        mode3Btn.className = "px-2.5 py-1 text-xs font-bold rounded-md transition-all text-emerald-300 hover:text-white";
+        p4NameHeaderCol.classList.remove('hidden');
+        p4TotalCol.classList.remove('hidden');
+        p4ScoreInputCol.classList.remove('hidden');
+        modalP4Container.classList.remove('hidden');
+      }
+    }
+
+    function formatScore(val) {
+      if (val > 0) return `+${val}`;
+      return `${val}`;
+    }
+
+    function getScoresSum(arr) {
+      return arr.reduce((acc, curr) => acc + (parseInt(curr) || 0), 0);
+    }
+
+    // Plus/Minus button handlers for main row
+    function adjustScore(playerIdx, delta) {
+      const currentVal = parseInt(scoreInputs[playerIdx].value) || 0;
+      scoreInputs[playerIdx].value = currentVal + delta;
+      sumAlert.classList.add('hidden');
+    }
+
+    // Plus/Minus button handlers for edit modal
+    function adjustModalScore(playerIdx, delta) {
+      const currentVal = parseInt(modalInputs[playerIdx].value) || 0;
+      modalInputs[playerIdx].value = currentVal + delta;
+      checkModalSum();
+    }
+
+    function checkModalSum() {
+      const activeScores = modalInputs.slice(0, state.playerCount).map(input => parseInt(input.value) || 0);
+      const sum = getScoresSum(activeScores);
+      if (sum !== 0) {
+        modalSumAlert.classList.remove('hidden');
+        modalSumValue.textContent = sum > 0 ? `+${sum}` : `${sum}`;
+      } else {
+        modalSumAlert.classList.add('hidden');
+      }
+    }
+
+    function render() {
+      const activeCount = state.playerCount;
+
+      const totals = Array(activeCount).fill(0);
+      state.history.forEach(round => {
+        for (let idx = 0; idx < activeCount; idx++) {
+          totals[idx] += (round.scores[idx] || 0);
+        }
+      });
+
+      totals.forEach((tot, idx) => {
+        totalDisplays[idx].textContent = formatScore(tot);
+        if (tot > 0) {
+          totalDisplays[idx].className = 'text-base sm:text-lg font-black text-emerald-400';
+        } else if (tot < 0) {
+          totalDisplays[idx].className = 'text-base sm:text-lg font-black text-rose-400';
+        } else {
+          totalDisplays[idx].className = 'text-base sm:text-lg font-black text-slate-100';
+        }
+      });
+
+      // Calculate Dealer (莊) position based on completed rounds count
+      const currentNextRoundNumber = state.history.length + 1;
+      const currentDealerIndex = Math.floor((currentNextRoundNumber - 1) / 3) % activeCount;
+
+      dealerCols.forEach((col, idx) => {
+        if (idx === currentDealerIndex) {
+          col.innerHTML = `
+            <span class="inline-block px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/50 font-black text-[11px] shadow-sm">
+              莊
+            </span>
+          `;
+        } else {
+          col.innerHTML = '';
+        }
+      });
+
+      historyTableBody.innerHTML = '';
+
+      newRowLabel.textContent = '';
+
+      if (state.history.length === 0) {
+        emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+
+        const reversed = [...state.history].reverse();
+        reversed.forEach((round, indexFromTop) => {
+          const originalRoundNumber = state.history.length - indexFromTop;
+          const tr = document.createElement('tr');
+
+          const groupIndex = Math.floor((originalRoundNumber - 1) / 3);
+          const bgClass = (groupIndex % 2 === 0) 
+            ? 'bg-emerald-950/60 hover:bg-emerald-800/60' 
+            : 'bg-emerald-900/40 hover:bg-emerald-800/60';
+
+          tr.className = `${bgClass} cursor-pointer transition-colors duration-150`;
+          tr.onclick = () => openEditModal(originalRoundNumber - 1);
+
+          let html = `
+            <td class="py-2 px-0.5 w-8 text-center font-bold text-emerald-300/70 text-[11px]">
+              G${originalRoundNumber}
+            </td>
+          `;
+
+          for (let i = 0; i < activeCount; i++) {
+            const score = round.scores[i] || 0;
+            let colorClass = 'text-slate-200';
+            if (score > 0) colorClass = 'text-emerald-400 font-bold';
+            if (score < 0) colorClass = 'text-rose-400 font-bold';
+
+            html += `
+              <td class="py-2 px-0.5 text-center font-mono ${colorClass}">
+                ${formatScore(score)}
+              </td>
+            `;
+          }
+
+          if (activeCount === 3) {
+            html += `<td class="py-2 px-0.5 text-center hidden"></td>`;
+          }
+
+          html += `
+            <td class="py-2 px-0.5 w-8 text-center text-emerald-400/60 text-xs">
+              <i class="fa-solid fa-pen text-[10px] opacity-70"></i>
+            </td>
+          `;
+
+          tr.innerHTML = html;
+          historyTableBody.appendChild(tr);
+        });
+      }
+    }
+
+    function confirmAddScore() {
+      const activeCount = state.playerCount;
+
+      let currentScores = scoreInputs.slice(0, activeCount).map(input => parseInt(input.value) || 0);
+      let currentSum = getScoresSum(currentScores);
+
+      if (currentSum !== 0) {
+        const zeroIndex = currentScores.findIndex(val => val === 0);
+        if (zeroIndex !== -1) {
+          const sumOfOthers = currentSum - currentScores[zeroIndex];
+          currentScores[zeroIndex] = -sumOfOthers;
+          scoreInputs[zeroIndex].value = -sumOfOthers;
+          currentSum = getScoresSum(currentScores);
+        }
+      }
+
+      if (currentSum !== 0) {
+        sumAlert.classList.remove('hidden');
+        sumValue.textContent = currentSum > 0 ? `+${currentSum}` : `${currentSum}`;
+        return;
+      }
+
+      sumAlert.classList.add('hidden');
+
+      const fullScores = [0, 0, 0, 0];
+      for (let i = 0; i < activeCount; i++) {
+        fullScores[i] = currentScores[i];
+      }
+
+      state.history.push({
+        id: Date.now(),
+        scores: fullScores
+      });
+
+      for (let i = 0; i < 4; i++) {
+        scoreInputs[i].value = 0;
+      }
+
+      saveState();
+      render();
+    }
+
+    function openEditModal(historyIndex) {
+      editingRoundIndex = historyIndex;
+      const round = state.history[historyIndex];
+
+      modalRoundNumber.textContent = historyIndex + 1;
+
+      modalP1Label.textContent = state.playerNames[0];
+      modalP2Label.textContent = state.playerNames[1];
+      modalP3Label.textContent = state.playerNames[2];
+      modalP4Label.textContent = state.playerNames[3];
+
+      for (let i = 0; i < 4; i++) {
+        modalInputs[i].value = round.scores[i] || 0;
+      }
+
+      checkModalSum();
+      editModal.classList.remove('hidden');
+    }
+
+    function closeEditModal() {
+      editModal.classList.add('hidden');
+      editingRoundIndex = null;
+    }
+
+    function saveEditModal() {
+      if (editingRoundIndex === null) return;
+      const activeCount = state.playerCount;
+
+      let editedScores = modalInputs.slice(0, activeCount).map(input => parseInt(input.value) || 0);
+      let sum = getScoresSum(editedScores);
+
+      if (sum !== 0) {
+        const zeroIndex = editedScores.findIndex(val => val === 0);
+        if (zeroIndex !== -1) {
+          const sumOfOthers = sum - editedScores[zeroIndex];
+          editedScores[zeroIndex] = -sumOfOthers;
+          modalInputs[zeroIndex].value = -sumOfOthers;
+          sum = getScoresSum(editedScores);
+        }
+      }
+
+      if (sum !== 0) {
+        checkModalSum();
+        return;
+      }
+
+      const fullScores = [0, 0, 0, 0];
+      for (let i = 0; i < activeCount; i++) {
+        fullScores[i] = editedScores[i];
+      }
+
+      state.history[editingRoundIndex].scores = fullScores;
+
+      saveState();
+      render();
+      closeEditModal();
+    }
+
+    function deleteRound() {
+      if (editingRoundIndex === null) return;
+      state.history.splice(editingRoundIndex, 1);
+      saveState();
+      render();
+      closeEditModal();
+    }
+
+    // Reset All Functions
+    function showResetModal() {
+      resetConfirmModal.classList.remove('hidden');
+    }
+
+    function hideResetModal() {
+      resetConfirmModal.classList.add('hidden');
+    }
+
+    function executeResetAll() {
+      state.history = [];
+      state.playerNames = ['Player 1', 'Player 2', 'Player 3', 'Player 4'];
+      
+      nameInputs.forEach((input, idx) => {
+        if (input) {
+          input.value = state.playerNames[idx];
+        }
+      });
+
+      for (let i = 0; i < 4; i++) {
+        if (scoreInputs[i]) {
+          scoreInputs[i].value = 0;
+        }
+      }
+      if (sumAlert) {
+        sumAlert.classList.add('hidden');
+      }
+      saveState();
+      render();
+      hideResetModal();
+    }
+
+    // Event Listeners
+    mode3Btn.addEventListener('click', () => setPlayerCount(3));
+    mode4Btn.addEventListener('click', () => setPlayerCount(4));
+
+    nameInputs.forEach((input, idx) => {
+      if (input) {
+        input.addEventListener('change', (e) => {
+          state.playerNames[idx] = e.target.value.trim() || `Player ${idx + 1}`;
+          saveState();
+        });
+      }
+    });
+
+    addScoreBtn.addEventListener('click', confirmAddScore);
+
+    closeModalBtn.addEventListener('click', closeEditModal);
+    cancelModalBtn.addEventListener('click', closeEditModal);
+    saveModalBtn.addEventListener('click', saveEditModal);
+    deleteRoundBtn.addEventListener('click', deleteRound);
+
+    resetAllBtn.addEventListener('click', showResetModal);
+    cancelResetBtn.addEventListener('click', hideResetModal);
+    confirmResetBtn.addEventListener('click', executeResetAll);
+
+    // Initialize on load
+    window.onload = loadState;
+  </script>
+</body>
+</html>
