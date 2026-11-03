@@ -414,17 +414,25 @@
       return `${val}`;
     }
 
+    function triggerHaptic() {
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(15); // Light 15ms vibration feedback
+      }
+    }
+
     function getScoresSum(arr) {
       return arr.reduce((acc, curr) => acc + (parseInt(curr) || 0), 0);
     }
 
     function adjustScore(playerIdx, delta) {
+      triggerHaptic();
       const currentVal = parseInt(scoreInputs[playerIdx].value) || 0;
       scoreInputs[playerIdx].value = currentVal + delta;
       sumAlert.classList.add('hidden');
     }
 
     function adjustModalScore(playerIdx, delta) {
+      triggerHaptic();
       const currentVal = parseInt(modalInputs[playerIdx].value) || 0;
       modalInputs[playerIdx].value = currentVal + delta;
       checkModalSum();
