@@ -23,9 +23,22 @@
     input[type='number'] {
       -moz-appearance: textfield;
     }
+
+    @keyframes audioPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    .playing-pulse {
+      animation: audioPulse 1.5s infinite ease-in-out;
+    }
   </style>
 </head>
 <body class="bg-emerald-950 bg-gradient-to-b from-emerald-900 via-emerald-950 to-slate-950 text-slate-100 min-h-screen pb-6">
+
+  <!-- Audio Element -->
+  <audio id="githubAudio" preload="auto">
+    <source src="https://github.com/beefsashimi/13/raw/refs/heads/main/god.mp3" type="audio/mpeg">
+  </audio>
 
   <!-- Main Container -->
   <div class="max-w-4xl mx-auto px-2 py-3 sm:px-4">
@@ -33,12 +46,11 @@
     <!-- Title Header & Mode Toggle -->
     <div class="flex items-center justify-between gap-2 mb-3 pb-2 border-b border-emerald-700/60">
       <div class="flex items-center gap-2">
-        <div class="p-1.5 bg-emerald-700 text-amber-300 rounded-lg shadow-md border border-emerald-600">
-          <i class="fa-solid fa-layer-group text-base sm:text-xl"></i>
-        </div>
-        <div>
-          <h1 class="text-lg sm:text-2xl font-black tracking-wide text-amber-300 leading-tight">十三張</h1>
-        </div>
+        <!-- Audio Toggle Button -->
+        <button id="musicToggleBtn" onclick="toggleAudio()" title="Play/Pause God of Gamblers Theme" class="w-8 h-8 rounded-full bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-emerald-950 font-bold flex items-center justify-center shadow-md border border-amber-300 transition-all duration-150">
+          <i id="musicIcon" class="fa-solid fa-play text-xs ml-0.5"></i>
+        </button>
+        <h1 class="text-lg sm:text-2xl font-black tracking-wide text-amber-300 leading-tight">十三張</h1>
       </div>
 
       <div class="flex items-center gap-2">
@@ -71,12 +83,15 @@
     <!-- Main Scorecard Table Container -->
     <div class="bg-emerald-900/90 backdrop-blur-md rounded-xl shadow-2xl border border-emerald-700/80 overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse table-fixed">
+        <table id="mainTable" class="w-full text-left border-collapse table-fixed">
+          <colgroup id="mainColGroup">
+            <!-- Will be dynamically generated in JS -->
+          </colgroup>
           
           <!-- ROW 1: PLAYER NAMES INPUT -->
           <thead>
             <tr class="bg-emerald-950/80 border-b border-emerald-700/80">
-              <th class="py-1.5 px-0.5 w-8 text-center"></th>
+              <th class="py-1.5 px-0.5 text-center"></th>
               <th class="py-1.5 px-0.5 text-center">
                 <input type="text" id="p1Name" value="P1" class="player-name-input w-full bg-emerald-900 border border-emerald-600 rounded px-1 py-1 text-center font-bold text-amber-300 text-xs focus:outline-none focus:ring-1 focus:ring-amber-400 shadow-inner">
               </th>
@@ -89,14 +104,14 @@
               <th id="p4NameHeaderCol" class="py-1.5 px-0.5 text-center">
                 <input type="text" id="p4Name" value="P4" class="player-name-input w-full bg-emerald-900 border border-emerald-600 rounded px-1 py-1 text-center font-bold text-amber-300 text-xs focus:outline-none focus:ring-1 focus:ring-amber-400 shadow-inner">
               </th>
-              <th class="py-1.5 px-0.5 text-center w-8"></th>
+              <th class="py-1.5 px-0.5 text-center"></th>
             </tr>
           </thead>
 
           <tbody>
             <!-- ROW 2: TOTAL SCORES -->
             <tr class="bg-emerald-950/40 border-b border-emerald-800/80">
-              <td class="py-2 px-0.5 w-8 text-center"></td>
+              <td class="py-2 px-0.5 text-center"></td>
               <td class="py-2 px-0.5 text-center">
                 <span id="p1Total" class="text-base sm:text-lg font-black text-slate-100">0</span>
               </td>
@@ -109,22 +124,22 @@
               <td id="p4TotalCol" class="py-2 px-0.5 text-center">
                 <span id="p4Total" class="text-base sm:text-lg font-black text-slate-100">0</span>
               </td>
-              <td class="py-2 px-0.5 text-center w-8"></td>
+              <td class="py-2 px-0.5 text-center"></td>
             </tr>
 
             <!-- ROW 2.5: DEALER (莊) INDICATOR ROW -->
             <tr class="bg-emerald-950/60 border-b-2 border-emerald-700/80">
-              <td class="py-1 px-0.5 w-8 text-center"></td>
+              <td class="py-1 px-0.5 text-center"></td>
               <td class="py-1 px-0.5 text-center" id="p1DealerCol"></td>
               <td class="py-1 px-0.5 text-center" id="p2DealerCol"></td>
               <td class="py-1 px-0.5 text-center" id="p3DealerCol"></td>
               <td class="py-1 px-0.5 text-center" id="p4DealerCol"></td>
-              <td class="py-1 px-0.5 text-center w-8"></td>
+              <td class="py-1 px-0.5 text-center"></td>
             </tr>
 
             <!-- ROW 3: NEW SCORE INPUT + CONFIRM BUTTON -->
             <tr class="bg-emerald-800/90 border-b border-emerald-600/80">
-              <td id="newRowLabel" class="py-2 px-0.5 w-8 text-[10px] font-bold text-emerald-200 text-center leading-tight"></td>
+              <td id="newRowLabel" class="py-2 px-0.5 text-[10px] font-bold text-emerald-200 text-center leading-tight"></td>
               <td class="py-2 px-0.5">
                 <div class="flex items-center justify-between bg-emerald-950 p-0.5 rounded border border-emerald-600 shadow-inner">
                   <button type="button" onclick="adjustScore(0, -1)" class="w-8 h-8 bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-900 text-rose-400 text-sm font-extrabold rounded flex items-center justify-center border border-emerald-700 select-none touch-manipulation">-</button>
@@ -153,7 +168,7 @@
                   <button type="button" onclick="adjustScore(3, 1)" class="w-8 h-8 bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-900 text-emerald-300 text-sm font-extrabold rounded flex items-center justify-center border border-emerald-700 select-none touch-manipulation">+</button>
                 </div>
               </td>
-              <td class="py-2 px-0.5 text-center w-8">
+              <td class="py-2 px-0.5 text-center">
                 <button id="addScoreBtn" class="w-full bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-emerald-950 font-black h-8 rounded text-xs shadow-md border border-amber-300 transition-all duration-150 flex items-center justify-center">
                   <i class="fa-solid fa-check text-xs"></i>
                 </button>
@@ -165,10 +180,12 @@
 
       <!-- SCROLLABLE HISTORY SECTION -->
       <div class="max-h-[55vh] overflow-y-auto">
-        <table class="w-full text-left border-collapse table-fixed">
-          <!-- ROW 4, 5, etc.: PAST SCORES HISTORY (REVERSE CHRONOLOGICAL) -->
+        <table id="historyTable" class="w-full text-left border-collapse table-fixed">
+          <colgroup id="historyColGroup">
+            <!-- Will be dynamically generated in JS -->
+          </colgroup>
+          <!-- PAST SCORES HISTORY -->
           <tbody id="historyTableBody" class="divide-y divide-emerald-800/60 text-xs">
-            <!-- Dynamic rows will be inserted here -->
           </tbody>
         </table>
       </div>
@@ -284,74 +301,37 @@
 
     let editingRoundIndex = null;
 
+    // Audio Playback Function
+    function toggleAudio() {
+      const audio = document.getElementById('githubAudio');
+      const btn = document.getElementById('musicToggleBtn');
+      const icon = document.getElementById('musicIcon');
+
+      if (!audio) return;
+
+      if (audio.paused) {
+        audio.play().then(() => {
+          icon.className = 'fa-solid fa-pause text-xs';
+          btn.classList.add('playing-pulse');
+        }).catch(err => console.error("Audio playback error:", err));
+      } else {
+        audio.pause();
+        icon.className = 'fa-solid fa-play text-xs ml-0.5';
+        btn.classList.remove('playing-pulse');
+      }
+    }
+
+    // Assign globally
+    window.toggleAudio = toggleAudio;
+
     // DOM Elements
-    const mode3Btn = document.getElementById('mode3Btn');
-    const mode4Btn = document.getElementById('mode4Btn');
-    const p4NameHeaderCol = document.getElementById('p4NameHeaderCol');
-    const p4TotalCol = document.getElementById('p4TotalCol');
-    const p4ScoreInputCol = document.getElementById('p4ScoreInputCol');
-    const modalP4Container = document.getElementById('modalP4Container');
-
-    const nameInputs = [
-      document.getElementById('p1Name'),
-      document.getElementById('p2Name'),
-      document.getElementById('p3Name'),
-      document.getElementById('p4Name')
-    ];
-
-    const scoreInputs = [
-      document.getElementById('p1Score'),
-      document.getElementById('p2Score'),
-      document.getElementById('p3Score'),
-      document.getElementById('p4Score')
-    ];
-
-    const totalDisplays = [
-      document.getElementById('p1Total'),
-      document.getElementById('p2Total'),
-      document.getElementById('p3Total'),
-      document.getElementById('p4Total')
-    ];
-
-    const dealerCols = [
-      document.getElementById('p1DealerCol'),
-      document.getElementById('p2DealerCol'),
-      document.getElementById('p3DealerCol'),
-      document.getElementById('p4DealerCol')
-    ];
-
-    const addScoreBtn = document.getElementById('addScoreBtn');
-    const historyTableBody = document.getElementById('historyTableBody');
-    const emptyState = document.getElementById('emptyState');
-    const sumAlert = document.getElementById('sumAlert');
-    const sumValue = document.getElementById('sumValue');
-    const newRowLabel = document.getElementById('newRowLabel');
-
-    // Modal DOM Elements
-    const editModal = document.getElementById('editModal');
-    const modalRoundNumber = document.getElementById('modalRoundNumber');
-    const modalP1Label = document.getElementById('modalP1Label');
-    const modalP2Label = document.getElementById('modalP2Label');
-    const modalP3Label = document.getElementById('modalP3Label');
-    const modalP4Label = document.getElementById('modalP4Label');
-    const modalInputs = [
-      document.getElementById('modalP1Score'),
-      document.getElementById('modalP2Score'),
-      document.getElementById('modalP3Score'),
-      document.getElementById('modalP4Score')
-    ];
-    const modalSumAlert = document.getElementById('modalSumAlert');
-    const modalSumValue = document.getElementById('modalSumValue');
-    const closeModalBtn = document.getElementById('closeModalBtn');
-    const cancelModalBtn = document.getElementById('cancelModalBtn');
-    const saveModalBtn = document.getElementById('saveModalBtn');
-    const deleteRoundBtn = document.getElementById('deleteRoundBtn');
-
-    // Reset Modal DOM Elements
-    const resetAllBtn = document.getElementById('resetAllBtn');
-    const resetConfirmModal = document.getElementById('resetConfirmModal');
-    const cancelResetBtn = document.getElementById('cancelResetBtn');
-    const confirmResetBtn = document.getElementById('confirmResetBtn');
+    let mode3Btn, mode4Btn, p4NameHeaderCol, p4TotalCol, p4ScoreInputCol, modalP4Container;
+    let mainColGroup, historyColGroup;
+    let nameInputs = [], scoreInputs = [], totalDisplays = [], dealerCols = [];
+    let addScoreBtn, historyTableBody, emptyState, sumAlert, sumValue, newRowLabel;
+    let editModal, modalRoundNumber, modalP1Label, modalP2Label, modalP3Label, modalP4Label;
+    let modalInputs = [], modalSumAlert, modalSumValue, closeModalBtn, cancelModalBtn, saveModalBtn, deleteRoundBtn;
+    let resetAllBtn, resetConfirmModal, cancelResetBtn, confirmResetBtn;
 
     // Load from LocalStorage
     function loadState() {
@@ -374,7 +354,7 @@
       }
 
       nameInputs.forEach((input, idx) => {
-        input.value = state.playerNames[idx] || `Player ${idx + 1}`;
+        if (input) input.value = state.playerNames[idx] || `Player ${idx + 1}`;
       });
 
       updateModeUI();
@@ -394,21 +374,39 @@
     }
 
     function updateModeUI() {
-      if (state.playerCount === 3) {
+      const is3Player = state.playerCount === 3;
+      
+      if (is3Player) {
         mode3Btn.className = "px-2.5 py-1 text-xs font-bold rounded-md transition-all bg-emerald-700 text-amber-300 border border-emerald-600 shadow";
         mode4Btn.className = "px-2.5 py-1 text-xs font-bold rounded-md transition-all text-emerald-300 hover:text-white";
-        p4NameHeaderCol.classList.add('hidden');
-        p4TotalCol.classList.add('hidden');
-        p4ScoreInputCol.classList.add('hidden');
+        
+        // In 3-Player mode, make P4 input/totals invisible & non-interactive while preserving layout column structure
+        p4NameHeaderCol.classList.add('invisible', 'pointer-events-none');
+        p4TotalCol.classList.add('invisible');
+        p4ScoreInputCol.classList.add('invisible', 'pointer-events-none');
         modalP4Container.classList.add('hidden');
       } else {
         mode4Btn.className = "px-2.5 py-1 text-xs font-bold rounded-md transition-all bg-emerald-700 text-amber-300 border border-emerald-600 shadow";
         mode3Btn.className = "px-2.5 py-1 text-xs font-bold rounded-md transition-all text-emerald-300 hover:text-white";
-        p4NameHeaderCol.classList.remove('hidden');
-        p4TotalCol.classList.remove('hidden');
-        p4ScoreInputCol.classList.remove('hidden');
+        
+        p4NameHeaderCol.classList.remove('invisible', 'pointer-events-none', 'hidden');
+        p4TotalCol.classList.remove('invisible', 'hidden');
+        p4ScoreInputCol.classList.remove('invisible', 'pointer-events-none', 'hidden');
         modalP4Container.classList.remove('hidden');
       }
+
+      // Keep fixed 4-player grid column proportions (36px labels + 4 equal columns + 36px actions) in both modes
+      const colHTML = `
+        <col style="width: 36px;">
+        <col style="width: calc((100% - 72px) / 4);">
+        <col style="width: calc((100% - 72px) / 4);">
+        <col style="width: calc((100% - 72px) / 4);">
+        <col style="width: calc((100% - 72px) / 4);">
+        <col style="width: 36px;">
+      `;
+
+      if (mainColGroup) mainColGroup.innerHTML = colHTML;
+      if (historyColGroup) historyColGroup.innerHTML = colHTML;
     }
 
     function formatScore(val) {
@@ -420,21 +418,13 @@
       return arr.reduce((acc, curr) => acc + (parseInt(curr) || 0), 0);
     }
 
-    // Plus/Minus button handlers for main row
     function adjustScore(playerIdx, delta) {
-      if ('vibrate' in navigator) {
-        navigator.vibrate(15);
-      }
       const currentVal = parseInt(scoreInputs[playerIdx].value) || 0;
       scoreInputs[playerIdx].value = currentVal + delta;
       sumAlert.classList.add('hidden');
     }
 
-    // Plus/Minus button handlers for edit modal
     function adjustModalScore(playerIdx, delta) {
-      if ('vibrate' in navigator) {
-        navigator.vibrate(15);
-      }
       const currentVal = parseInt(modalInputs[playerIdx].value) || 0;
       modalInputs[playerIdx].value = currentVal + delta;
       checkModalSum();
@@ -472,7 +462,6 @@
         }
       });
 
-      // Calculate Dealer (莊) position based on completed rounds count
       const currentNextRoundNumber = state.history.length + 1;
       const currentDealerIndex = Math.floor((currentNextRoundNumber - 1) / 3) % activeCount;
 
@@ -489,8 +478,6 @@
       });
 
       historyTableBody.innerHTML = '';
-
-      newRowLabel.textContent = '';
 
       if (state.history.length === 0) {
         emptyState.classList.remove('hidden');
@@ -511,30 +498,32 @@
           tr.onclick = () => openEditModal(originalRoundNumber - 1);
 
           let html = `
-            <td class="py-2 px-0.5 w-8 text-center font-bold text-emerald-300/70 text-[11px]">
+            <td class="py-2 px-0.5 text-center font-bold text-emerald-300/70 text-[11px]">
               G${originalRoundNumber}
             </td>
           `;
 
-          for (let i = 0; i < activeCount; i++) {
-            const score = round.scores[i] || 0;
-            let colorClass = 'text-slate-200';
-            if (score > 0) colorClass = 'text-emerald-400 font-bold';
-            if (score < 0) colorClass = 'text-rose-400 font-bold';
+          // Always render 4 columns for fixed column alignment
+          for (let i = 0; i < 4; i++) {
+            if (i < activeCount) {
+              const score = round.scores[i] || 0;
+              let colorClass = 'text-slate-200';
+              if (score > 0) colorClass = 'text-emerald-400 font-bold';
+              if (score < 0) colorClass = 'text-rose-400 font-bold';
 
-            html += `
-              <td class="py-2 px-0.5 text-center font-mono ${colorClass}">
-                ${formatScore(score)}
-              </td>
-            `;
-          }
-
-          if (activeCount === 3) {
-            html += `<td class="py-2 px-0.5 text-center hidden"></td>`;
+              html += `
+                <td class="py-2 px-0.5 text-center font-mono ${colorClass}">
+                  ${formatScore(score)}
+                </td>
+              `;
+            } else {
+              // Blank empty cell for the unused 4th player column in 3-Player mode
+              html += `<td class="py-2 px-0.5 text-center font-mono"></td>`;
+            }
           }
 
           html += `
-            <td class="py-2 px-0.5 w-8 text-center text-emerald-400/60 text-xs">
+            <td class="py-2 px-0.5 text-center text-emerald-400/60 text-xs">
               <i class="fa-solid fa-pen text-[10px] opacity-70"></i>
             </td>
           `;
@@ -653,7 +642,6 @@
       closeEditModal();
     }
 
-    // Reset All Functions
     function showResetModal() {
       resetConfirmModal.classList.remove('hidden');
     }
@@ -667,50 +655,125 @@
       state.playerNames = ['Player 1', 'Player 2', 'Player 3', 'Player 4'];
       
       nameInputs.forEach((input, idx) => {
-        if (input) {
-          input.value = state.playerNames[idx];
-        }
+        if (input) input.value = state.playerNames[idx];
       });
 
       for (let i = 0; i < 4; i++) {
-        if (scoreInputs[i]) {
-          scoreInputs[i].value = 0;
-        }
+        if (scoreInputs[i]) scoreInputs[i].value = 0;
       }
-      if (sumAlert) {
-        sumAlert.classList.add('hidden');
-      }
+
+      if (sumAlert) sumAlert.classList.add('hidden');
       saveState();
       render();
       hideResetModal();
     }
 
-    // Event Listeners
-    mode3Btn.addEventListener('click', () => setPlayerCount(3));
-    mode4Btn.addEventListener('click', () => setPlayerCount(4));
+    // Initialize DOM References and Event Listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      mode3Btn = document.getElementById('mode3Btn');
+      mode4Btn = document.getElementById('mode4Btn');
+      p4NameHeaderCol = document.getElementById('p4NameHeaderCol');
+      p4TotalCol = document.getElementById('p4TotalCol');
+      p4ScoreInputCol = document.getElementById('p4ScoreInputCol');
+      modalP4Container = document.getElementById('modalP4Container');
+      mainColGroup = document.getElementById('mainColGroup');
+      historyColGroup = document.getElementById('historyColGroup');
 
-    nameInputs.forEach((input, idx) => {
-      if (input) {
-        input.addEventListener('change', (e) => {
-          state.playerNames[idx] = e.target.value.trim() || `Player ${idx + 1}`;
-          saveState();
+      nameInputs = [
+        document.getElementById('p1Name'),
+        document.getElementById('p2Name'),
+        document.getElementById('p3Name'),
+        document.getElementById('p4Name')
+      ];
+
+      scoreInputs = [
+        document.getElementById('p1Score'),
+        document.getElementById('p2Score'),
+        document.getElementById('p3Score'),
+        document.getElementById('p4Score')
+      ];
+
+      totalDisplays = [
+        document.getElementById('p1Total'),
+        document.getElementById('p2Total'),
+        document.getElementById('p3Total'),
+        document.getElementById('p4Total')
+      ];
+
+      dealerCols = [
+        document.getElementById('p1DealerCol'),
+        document.getElementById('p2DealerCol'),
+        document.getElementById('p3DealerCol'),
+        document.getElementById('p4DealerCol')
+      ];
+
+      addScoreBtn = document.getElementById('addScoreBtn');
+      historyTableBody = document.getElementById('historyTableBody');
+      emptyState = document.getElementById('emptyState');
+      sumAlert = document.getElementById('sumAlert');
+      sumValue = document.getElementById('sumValue');
+      newRowLabel = document.getElementById('newRowLabel');
+
+      editModal = document.getElementById('editModal');
+      modalRoundNumber = document.getElementById('modalRoundNumber');
+      modalP1Label = document.getElementById('modalP1Label');
+      modalP2Label = document.getElementById('modalP2Label');
+      modalP3Label = document.getElementById('modalP3Label');
+      modalP4Label = document.getElementById('modalP4Label');
+      modalInputs = [
+        document.getElementById('modalP1Score'),
+        document.getElementById('modalP2Score'),
+        document.getElementById('modalP3Score'),
+        document.getElementById('modalP4Score')
+      ];
+      modalSumAlert = document.getElementById('modalSumAlert');
+      modalSumValue = document.getElementById('modalSumValue');
+      closeModalBtn = document.getElementById('closeModalBtn');
+      cancelModalBtn = document.getElementById('cancelModalBtn');
+      saveModalBtn = document.getElementById('saveModalBtn');
+      deleteRoundBtn = document.getElementById('deleteRoundBtn');
+
+      resetAllBtn = document.getElementById('resetAllBtn');
+      resetConfirmModal = document.getElementById('resetConfirmModal');
+      cancelResetBtn = document.getElementById('cancelResetBtn');
+      confirmResetBtn = document.getElementById('confirmResetBtn');
+
+      // Bind Listeners
+      mode3Btn.addEventListener('click', () => setPlayerCount(3));
+      mode4Btn.addEventListener('click', () => setPlayerCount(4));
+
+      nameInputs.forEach((input, idx) => {
+        if (input) {
+          input.addEventListener('change', (e) => {
+            state.playerNames[idx] = e.target.value.trim() || `Player ${idx + 1}`;
+            saveState();
+          });
+        }
+      });
+
+      addScoreBtn.addEventListener('click', confirmAddScore);
+
+      closeModalBtn.addEventListener('click', closeEditModal);
+      cancelModalBtn.addEventListener('click', closeEditModal);
+      saveModalBtn.addEventListener('click', saveEditModal);
+      deleteRoundBtn.addEventListener('click', deleteRound);
+
+      resetAllBtn.addEventListener('click', showResetModal);
+      cancelResetBtn.addEventListener('click', hideResetModal);
+      confirmResetBtn.addEventListener('click', executeResetAll);
+
+      const audio = document.getElementById('githubAudio');
+      if (audio) {
+        audio.addEventListener('ended', () => {
+          const btn = document.getElementById('musicToggleBtn');
+          const icon = document.getElementById('musicIcon');
+          if (icon) icon.className = 'fa-solid fa-play text-xs ml-0.5';
+          if (btn) btn.classList.remove('playing-pulse');
         });
       }
+
+      loadState();
     });
-
-    addScoreBtn.addEventListener('click', confirmAddScore);
-
-    closeModalBtn.addEventListener('click', closeEditModal);
-    cancelModalBtn.addEventListener('click', closeEditModal);
-    saveModalBtn.addEventListener('click', saveEditModal);
-    deleteRoundBtn.addEventListener('click', deleteRound);
-
-    resetAllBtn.addEventListener('click', showResetModal);
-    cancelResetBtn.addEventListener('click', hideResetModal);
-    confirmResetBtn.addEventListener('click', executeResetAll);
-
-    // Initialize on load
-    window.onload = loadState;
   </script>
 </body>
 </html>
