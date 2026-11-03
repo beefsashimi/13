@@ -311,11 +311,12 @@
 
       if (audio.paused) {
         audio.play().then(() => {
-          icon.className = 'fa-solid fa-pause text-xs';
+          icon.className = 'fa-solid fa-stop text-xs';
           btn.classList.add('playing-pulse');
         }).catch(err => console.error("Audio playback error:", err));
       } else {
         audio.pause();
+        audio.currentTime = 0; // Reset track to beginning on stop
         icon.className = 'fa-solid fa-play text-xs ml-0.5';
         btn.classList.remove('playing-pulse');
       }
